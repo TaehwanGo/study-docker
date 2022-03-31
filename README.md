@@ -225,6 +225,12 @@ ENTRYPOINT ["node", "index.js"]
     - 호스트 머신의 포트와 컨테이너 머신의 포트를 연결하는 작업 필요
 - 명령어 실행 : 컨테이너의 id가 프린트 됨
 
+## 도커 컨테이너 멈추기
+
+`docker stop fun-docker`
+
+- docker stop :tagName
+
 ## 컨테이너 확인
 
 `docker ps`
