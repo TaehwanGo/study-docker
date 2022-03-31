@@ -133,18 +133,142 @@
 
 ## 실습 프로젝트 소개
 
+- https://github.com/dream-ellie/docker-example
+
 ## 도커 설치
+
+- https://www.docker.com/get-started/
+  - docker desktop에서 운영체제에 맞게 다운로드
+- vs code의 docker extension 설치
 
 ## 노드 프로젝트 만들기
 
+`npm init -y`
+
+`npm i express`
+
+`node index.js`
+
 ## Dockerfile 만들기
+
+- 어떤 이미지를 만들 것인지
+- 어떤 것들이 필요한지 명시하는 것
+
+```dockerfile
+FROM baseImage
+```
+
+- baseImage가 기본이지만 노드는 미리 만들어둔 이미지를 이용
+  - alpine : 최소한의 기능이 있는 리눅스
+
+```Dockerfile
+WORKDIR /app
+```
+
+- linux의 cd와 같은 명령어
+- 이미지 파알 안에서 어떤 디렉토리의 어플리케이션을 복사해올 것인지 명시
+
+```dockerfile
+COPY package.json package-lock.json ./
+```
+
+- 도커파일에서 카피하고 가져오는 것은 레이어 시스템으로 구성되어 있기 때문에 빈번히 변경되는 파일은 마지막에 작성하는 것이 좋음
+- package.json 보다 index.js가 더 자주 변경되기 때문에 index.js를 나중에 복사 해옴
+
+```dockerfile
+# RUN npm install
+RUN npm ci
+```
+
+- package.json에 있는 모든 라이브러리를 설치
+- npm install : 프로젝트 버전과 설치 버전이 달라질 수 있음
+- npm ci : package-lock.json에 명시되어있는 것을 그대로 설치
+
+```dockerfile
+ENTRYPOINT ["node", "index.js"]
+```
+
+- node실행하고 index.js도 실행하라는 뜻
+
+- 레이어 개념
+  - 도커파일에서 위에서 부터 명령어가 있는데
+  - 이 명령어 중 변경되지 않은 부분은 이미지에서도 그대로 사용하고
+  - 도커파일의 변경된 부분부터 다시 만들기 때문에
+  - 빈번히 변경되는 레이어일 수록 뒤에 명령어를 배치하면 도커 이미지를 만드는 시간이 단축됨
 
 ## 이미지 만들기
 
+`docker build -f Dockerfile -t fun-docker .`
+
+- 제일 마지막의 점(.) : build context
+  - 도커에게 도커가 필요한 파일이 어디에 있는지 알려주는 것
+  - 명령어를 수행하는 현재 경로를 지정
+  - `-f` 옵션 : 어떤 도커파일을 사용할 것인지 명시
+    - 기본적으로 `Dockerfile`이란 이름을 사용하지만 다른 이름을 지정할 수도 있음
+  - `-t` 옵션 : 도커이미지에 이름을 부여, 태그 같은 개념
+
+`docker images`
+
+- 로컬 머신에 만들어진 도커 이미지들을 확인할 수 있음
+
 ## 도커 컨테이너 실행
+
+- 방금 만든 이미지를 실행
+
+`docker run -d -p 8080:8080 fun-docker`
+
+- `-d` 옵션 : detach - background에서 도커가 동작해야 됨
+  - node.js 백엔드 어플리케이션이기 때문에 백그라운드에서 계속 동작해야 되는데 아니면 터미널이 계속 기다려야 되므로 detach옵션을 줘서 터미널은 도커 동작과 관계없이 할거 하라는 뜻
+- `-p` 옵션 : 포트를 지정
+  - 호스트 머신의 8080과 컨테이너 머신의 8080을 연결
+  - 각각의 컨테이너는 개별적인 고립된 환경에서 동작하고 있음
+    - 호스트 머신의 포트와 컨테이너 머신의 포트를 연결하는 작업 필요
+- 명령어 실행 : 컨테이너의 id가 프린트 됨
 
 ## 컨테이너 확인
 
+`docker ps`
+
+- 현재 실행 중인 도커 컨테이너들의 리스트
+- 컨테이너 id 확인 가능
+
+`docker logs :id`
+
+- 컨테이너 발생한 로그들을 확인 가능
+
+도커데스크탑(Docker Desktop) 파일을 실행해서 편리하게도 이용 가능
+
+- 컨테이너 내부에서도 터미널 사용 가능
+
 ## 이미지 배포
 
+- 도커 허브에 가입하고 새로운 레포를 생성
+
+- push commands
+
+`docker push gth1123/docker-example:tagname`
+
+- 이미지 이름이 repository이름과 매칭이 되어야 함
+
+`docker tag fun-docker:latest gth1123/docker-example:latest`
+
+- 기존에 만든 도커 이름 변경
+
+`docker images`
+
+- 도커 이미지들 확인
+  - 내가 만든 두개의 이미지 - 원본, 이름 변경한 것 - 확인 가능
+
+`docker login`
+
+- 푸시하기 위해선 로그인을 해야 함
+
+`docker push gth1123/docker-example:latest`
+
+- 도커허브 레포와 이름을 맞춘 내 로컬 도커 이미지를 push
+
+- 도커허브의 레포에 내가 방금 푸시한 도커이미지를 확인할 수 있음 !
+
 ## 끝!
+
+- 도커 컴포즈, 데이터 베이스, 문법 등에 대해서도 추가로 공부해보자 !
