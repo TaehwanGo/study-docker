@@ -98,3 +98,50 @@ wordpress:latest
 - docker rm --force app
 - docker rm --force db
 - docker network rm wordpress_net
+
+#### docker-compose 설정
+
+```yml
+version: "3.7" # 버전
+
+services: # 컨테이너들
+  db: # 컨테이너 이름
+    image: mysql:5.7 # mysql5.7 이미지를 사용해라
+    volumes: # HOST에 폴더를 만들고 컨테이너와 연결
+      - ./db_data:/var/lib/mysql
+    restart: always
+    environment: # 환경 변수
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress_user
+      MYSQL_PASSWORD: 123456
+
+  app:
+    depends_on: # mysql을 이용하기 때문에 mysql서버가 먼저 만들어져야 함
+      - db # db 컨테이너가 먼저 만들어지고 그 다음 wordpress 컨테이너가 만들어짐
+    image: wordpress:latest
+    volumes:
+      - ./app_data:/var/www/html
+    ports: # app만 포트를 열어 둠
+      - "8080:80"
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306 # ip가 아닌 컨테이너 이름만으로 접속가능하게 하려면 네트워크를 만들어야 함
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress_user
+      WORDPRESS_DB_PASSWORD: 123456
+```
+
+- 실행 : docker-compose up
+
+- 종료 : docker-compose down
+
+- app만 접속 가능하게 하고 db컨테이너는 접속이 불가능하게 설정
+
+- wordpress에서 ip가 아닌 컨테이너 이름으로 접근하도록 하기 위해 네트워크를 만들음
+  - 명령어 : `docker network create wordpress_net`
+  - 도커 컴포즈 : 컴포즈를 만드는 순간 자동으로 네트워크가 만들어지고 앱들은 그 네트워크에 자동으로 연결이 됨
+
+## flow
+
+![](flow.png)
